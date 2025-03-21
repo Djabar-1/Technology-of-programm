@@ -1,0 +1,166 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class Person {
+public:
+    string name;
+    int age;
+    double salary;
+    Person* next;
+
+    Person(string name, int age, double salary) : name(name), age(age), salary(salary), next(nullptr) {}
+};
+
+class PersonList {
+private:
+    Person* head;
+
+public:
+    PersonList() : head(nullptr) {}
+
+    ~PersonList() {
+        while (head != nullptr) {
+            Person* temp = head;
+            head = head->next;
+            delete temp;
+        }
+    }
+
+    // Метод для добавления элемента в начало списка
+    void addToBeginning(string name, int age, double salary) {
+        Person* newNode = new Person(name, age, salary);
+        newNode->next = head;
+        head = newNode;
+    }
+
+    // Метод для добавления элемента в конец списка
+    void addToEnd(string name, int age, double salary) {
+        Person* newNode = new Person(name, age, salary);
+
+        if (head == nullptr) {
+            head = newNode;  
+        }
+        else {
+            Person* temp = head;
+            while (temp->next != nullptr) {
+                temp = temp->next;
+            }
+            temp->next = newNode;
+        }
+    }
+        
+    // Метод для добавления элемента после заданного элемента
+    void addAfter(string targetName, string name, int age, double salary) {
+        Person* temp = head;
+        while (temp != nullptr && temp->name != targetName) {
+            temp = temp->next;
+        }
+        if (temp != nullptr) {
+            Person* newNode = new Person(name, age, salary);
+            newNode->next = temp->next;
+            temp->next = newNode;
+        }
+        else {
+            cout << "Элемент с именем " << targetName << " не найден." << endl;
+        }
+    }
+
+    // Метод для добавления элемента перед заданным элементом
+    void addBefore(string targetName, string name, int age, double salary) {
+        if (head == nullptr) {
+            cout << "Список пуст." << endl;
+            return;
+        }
+
+        if (head->name == targetName) {
+            addToBeginning(name, age, salary);
+            return;
+        }
+
+        Person* temp = head;
+        while (temp->next != nullptr && temp->next->name != targetName) {
+            temp = temp->next;
+        }
+
+        if (temp->next != nullptr) {
+            Person* newNode = new Person(name, age, salary);
+            newNode->next = temp->next;
+            temp->next = newNode;
+        }
+        else {
+            cout << "Элемент с именем " << targetName << " не найден." << endl;
+        }
+    }
+
+    // Метод для удаления элемента с заданным именем
+    void deleteByName(string targetName) {
+        if (head == nullptr) {
+            cout << "Список пуст." << endl;
+            return;
+        }
+
+        if (head->name == targetName) {
+            Person* temp = head;
+            head = head->next;
+            delete temp;
+            return;
+        }
+
+        Person* temp = head;
+        while (temp->next != nullptr && temp->next->name != targetName) {
+            temp = temp->next;
+        }
+
+        if (temp->next != nullptr) {
+            Person* nodeToDelete = temp->next;
+            temp->next = temp->next->next;
+            delete nodeToDelete;
+        }
+        else {
+            cout << "Элемент с именем " << targetName << " не найден." << endl;
+        }
+    }
+
+    // Метод для вывода списка на экран
+    void printList() const {
+        Person* temp = head;
+        while (temp != nullptr) {
+            cout << "Имя: " << temp->name << ", Возраст: " << temp->age << ", Зарплата: " << temp->salary << endl;
+            temp = temp->next;
+        }
+    }
+};
+
+// Основная функция
+int main() {
+    setlocale(LC_ALL, "RU");
+    PersonList list;
+
+    // Добавление элементов в список
+    list.addToEnd("Николай", 30, 50500);
+    list.addToBeginning("Антон", 25, 45000);
+    list.addToEnd("Константин", 23, 25000);
+
+    // Вывод списка
+    cout << "Список после добавления элементов:" << endl;
+    list.printList();
+
+    // Добавление элемента после заданного
+    list.addAfter("Антон", "Алексей", 22, 40000);
+    cout << "\nСписок после добавления элемента после Антона:" << endl;
+    list.printList();
+
+    // Добавление элемента перед заданным
+    list.addBefore("Константин", "Ольга", 27, 52000);
+    cout << "\nСписок после добавления элемента перед Константином:" << endl;
+    list.printList();
+
+    // Удаление элемента по имени
+    list.deleteByName("Антон");
+    cout << "\nСписок после удаления Антона:" << endl;
+    list.printList();
+
+    return 0;
+}
