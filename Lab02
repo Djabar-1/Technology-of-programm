@@ -1,0 +1,379 @@
+#include <iostream>
+#include <cstring>
+#include <clocale>
+#include <windows.h>
+
+using namespace std;
+
+class vect;
+class matr;
+
+class vect {
+private:
+    int dim;
+    double* b;
+    int num;
+    static int count;
+
+public:
+    // Конструктор по умолчанию
+    vect() : dim(0), b(nullptr), num(++count) {
+        cout << "Создан вектор #" << num << " (по умолчанию)" << endl;
+    }
+
+    // Конструктор с параметром размерности
+    vect(int d) : dim(d), num(++count) {
+        b = new double[dim];
+        memset(b, 0, dim * sizeof(double));
+        cout << "Создан вектор #" << num << " размерности " << dim << endl;
+    }
+
+    // Конструктор копирования
+    vect(const vect& v) : dim(v.dim), num(++count) {
+        b = new double[dim];
+        memcpy(b, v.b, dim * sizeof(double));
+        cout << "Создан вектор #" << num << " (копия вектора #" << v.num << ")" << endl;
+    }
+
+    // Деструктор
+    ~vect() {
+        cout << "Уничтожен вектор #" << num << endl;
+        delete[] b;
+    }
+
+    // Оператор присваивания
+    vect& operator=(const vect& v) {
+        if (this != &v) {
+            delete[] b;
+            dim = v.dim;
+            b = new double[dim];
+            memcpy(b, v.b, dim * sizeof(double));
+            cout << "Вектор #" << num << " присвоен вектору #" << v.num << endl;
+        }
+        return *this;
+    }
+
+    // Оператор сложения векторов
+    vect operator+(const vect& v) const {
+        cout << "Сложение векторов #" << num << " и #" << v.num << endl;
+        if (dim != v.dim) throw "Размерности векторов не совпадают!";
+        vect result(dim);
+        for (int i = 0; i < dim; ++i) {
+            result.b[i] = b[i] + v.b[i];
+        }
+        return result;
+    }
+
+    // Оператор вычитания векторов
+    vect operator-(const vect& v) const {
+        cout << "Вычитание векторов #" << num << " и #" << v.num << endl;
+        if (dim != v.dim) throw "Размерности векторов не совпадают!";
+        vect result(dim);
+        for (int i = 0; i < dim; ++i) {
+            result.b[i] = b[i] - v.b[i];
+        }
+        return result;
+    }
+
+    // Оператор унарного минуса
+    vect operator-() const {
+        cout << "Унарный минус для вектора #" << num << endl;
+        vect result(dim);
+        for (int i = 0; i < dim; ++i) {
+            result.b[i] = -b[i];
+        }
+        return result;
+    }
+
+    // Оператор умножения векторов (скалярное произведение)
+    double operator*(const vect& v) const {
+        cout << "Умножение векторов #" << num << " и #" << v.num << endl;
+        if (dim != v.dim) throw "Размерности векторов не совпадают!";
+        double result = 0;
+        for (int i = 0; i < dim; ++i) {
+            result += b[i] * v.b[i];
+        }
+        return result;
+    }
+
+    // Оператор умножения вектора на число
+    friend vect operator*(double k, const vect& v) {
+        cout << "Умножение числа на вектор #" << v.num << endl;
+        vect result(v.dim);
+        for (int i = 0; i < v.dim; ++i) {
+            result.b[i] = k * v.b[i];
+        }
+        return result;
+    }
+
+    // Оператор умножения вектора на число
+    vect operator*(double k) const {
+        cout << "Умножение вектора #" << num << " на число" << endl;
+        vect result(dim);
+        for (int i = 0; i < dim; ++i) {
+            result.b[i] = k * b[i];
+        }
+        return result;
+    }
+
+    // Дружественная функция для умножения матрицы на вектор
+    friend vect operator*(const matr& m, const vect& v);
+
+    // Функция для доступа к элементам вектора
+    double& operator[](int index) {
+        if (index < 0 || index >= dim) throw "Индекс вне диапазона!";
+        return b[index];
+    }
+
+    // Функция для вывода вектора
+    friend ostream& operator<<(ostream& os, const vect& v) {
+        os << "[";
+        for (int i = 0; i < v.dim; ++i) {
+            os << v.b[i];
+            if (i < v.dim - 1) os << ", ";
+        }
+        os << "]";
+        return os;
+    }
+};
+
+class matr {
+private:
+    int dim;
+    double* a;
+    int num;
+    static int count;
+
+public:
+    // Конструктор по умолчанию
+    matr() : dim(0), a(nullptr), num(++count) {
+        cout << "Создана матрица #" << num << " (по умолчанию)" << endl;
+    }
+
+    // Конструктор с параметром размерности
+    matr(int d) : dim(d), num(++count) {
+        a = new double[dim * dim];
+        memset(a, 0, dim * dim * sizeof(double));
+        cout << "Создана матрица #" << num << " размерности " << dim << "x" << dim << endl;
+    }
+
+    // Конструктор копирования
+    matr(const matr& m) : dim(m.dim), num(++count) {
+        a = new double[dim * dim];
+        memcpy(a, m.a, dim * dim * sizeof(double));
+        cout << "Создана матрица #" << num << " (копия матрицы #" << m.num << ")" << endl;
+    }
+
+    // Деструктор
+    ~matr() {
+        cout << "Уничтожена матрица #" << num << endl;
+        delete[] a;
+    }
+
+    // Оператор присваивания
+    matr& operator=(const matr& m) {
+        if (this != &m) {
+            delete[] a;
+            dim = m.dim;
+            a = new double[dim * dim];
+            memcpy(a, m.a, dim * dim * sizeof(double));
+            cout << "Матрица #" << num << " присвоена матрице #" << m.num << endl;
+        }
+        return *this;
+    }
+
+    // Оператор сложения матриц
+    matr operator+(const matr& m) const {
+        cout << "Сложение матриц #" << num << " и #" << m.num << endl;
+        if (dim != m.dim) throw "Размерности матриц не совпадают!";
+        matr result(dim);
+        for (int i = 0; i < dim * dim; ++i) {
+            result.a[i] = a[i] + m.a[i];
+        }
+        return result;
+    }
+
+    // Оператор вычитания матриц
+    matr operator-(const matr& m) const {
+        cout << "Вычитание матриц #" << num << " и #" << m.num << endl;
+        if (dim != m.dim) throw "Размерности матриц не совпадают!";
+        matr result(dim);
+        for (int i = 0; i < dim * dim; ++i) {
+            result.a[i] = a[i] - m.a[i];
+        }
+        return result;
+    }
+
+    // Оператор унарного минуса
+    matr operator-() const {
+        cout << "Унарный минус для матрицы #" << num << endl;
+        matr result(dim);
+        for (int i = 0; i < dim * dim; ++i) {
+            result.a[i] = -a[i];
+        }
+        return result;
+    }
+
+    // Оператор умножения матриц
+    matr operator*(const matr& m) const {
+        cout << "Умножение матриц #" << num << " и #" << m.num << endl;
+        if (dim != m.dim) throw "Размерности матриц не совпадают!";
+        matr result(dim);
+        for (int i = 0; i < dim; ++i) {
+            for (int j = 0; j < dim; ++j) {
+                double sum = 0;
+                for (int k = 0; k < dim; ++k) {
+                    sum += a[i * dim + k] * m.a[k * dim + j];
+                }
+                result.a[i * dim + j] = sum;
+            }
+        }
+        return result;
+    }
+
+    // Оператор умножения матрицы на число
+    friend matr operator*(double k, const matr& m) {
+        cout << "Умножение числа на матрицу #" << m.num << endl;
+        matr result(m.dim);
+        for (int i = 0; i < m.dim * m.dim; ++i) {
+            result.a[i] = k * m.a[i];
+        }
+        return result;
+    }
+
+    // Оператор умножения матрицы на число
+    matr operator*(double k) const {
+        cout << "Умножение матрицы #" << num << " на число" << endl;
+        matr result(dim);
+        for (int i = 0; i < dim * dim; ++i) {
+            result.a[i] = k * a[i];
+        }
+        return result;
+    }
+
+    // Функция для доступа к элементам матрицы
+    double& operator()(int row, int col) {
+        if (row < 0 || row >= dim || col < 0 || col >= dim) throw "Индекс вне диапазона!";
+        return a[row * dim + col];
+    }
+
+    // Функция для вывода матрицы
+    friend ostream& operator<<(ostream& os, const matr& m) {
+        for (int i = 0; i < m.dim; ++i) {
+            os << "[";
+            for (int j = 0; j < m.dim; ++j) {
+                os << m.a[i * m.dim + j];
+                if (j < m.dim - 1) os << ", ";
+            }
+            os << "]" << endl;
+        }
+        return os;
+    }
+
+    // Дружественная функция для умножения матрицы на вектор
+    friend vect operator*(const matr& m, const vect& v);
+};
+
+// Умножение матрицы на вектор
+vect operator*(const matr& m, const vect& v) {
+    cout << "Умножение матрицы #" << m.num << " на вектор #" << v.num << endl;
+    if (m.dim != v.dim) throw "Размерности матрицы и вектора не совпадают!";
+    vect result(m.dim);
+    for (int i = 0; i < m.dim; ++i) {
+        double sum = 0;
+        for (int j = 0; j < m.dim; ++j) {
+            sum += m.a[i * m.dim + j] * v.b[j];
+        }
+        result.b[i] = sum;
+    }
+    return result;
+}
+
+// Инициализация статических переменных
+int vect::count = 0;
+int matr::count = 0;
+
+int main() {
+    // Установка русской локали для консоли
+    setlocale(LC_ALL, "Russian");
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+    
+    try {
+        // Демонстрация работы с векторами
+        cout << "\n=== Работа с векторами ===" << endl;
+        vect v1(3), v2(3), v3(3);
+        
+        // Заполнение векторов
+        v1[0] = 1; v1[1] = 2; v1[2] = 3;
+        v2[0] = 4; v2[1] = 5; v2[2] = 6;
+        
+        cout << "v1: " << v1 << endl;
+        cout << "v2: " << v2 << endl;
+        
+        // Операции с векторами
+        v3 = v1 + v2;
+        cout << "v1 + v2: " << v3 << endl;
+        
+        v3 = v1 - v2;
+        cout << "v1 - v2: " << v3 << endl;
+        
+        v3 = -v1;
+        cout << "-v1: " << v3 << endl;
+        
+        double dot = v1 * v2;
+        cout << "v1 * v2 (скалярное): " << dot << endl;
+        
+        v3 = 2.5 * v1;
+        cout << "2.5 * v1: " << v3 << endl;
+        
+        v3 = v1 * 3.0;
+        cout << "v1 * 3.0: " << v3 << endl;
+        
+        // Демонстрация работы с матрицами
+        cout << "\n=== Работа с матрицами ===" << endl;
+        matr m1(2), m2(2), m3(2);
+        
+        // Заполнение матриц
+        m1(0,0) = 1; m1(0,1) = 2;
+        m1(1,0) = 3; m1(1,1) = 4;
+        
+        m2(0,0) = 5; m2(0,1) = 6;
+        m2(1,0) = 7; m2(1,1) = 8;
+        
+        cout << "m1:\n" << m1 << endl;
+        cout << "m2:\n" << m2 << endl;
+        
+        // Операции с матрицами
+        m3 = m1 + m2;
+        cout << "m1 + m2:\n" << m3 << endl;
+        
+        m3 = m1 - m2;
+        cout << "m1 - m2:\n" << m3 << endl;
+        
+        m3 = -m1;
+        cout << "-m1:\n" << m3 << endl;
+        
+        m3 = m1 * m2;
+        cout << "m1 * m2:\n" << m3 << endl;
+        
+        m3 = 2.0 * m1;
+        cout << "2.0 * m1:\n" << m3 << endl;
+        
+        m3 = m1 * 1.5;
+        cout << "m1 * 1.5:\n" << m3 << endl;
+        
+        // Умножение матрицы на вектор
+        vect v4(2);
+        v4[0] = 1; v4[1] = 2;
+        cout << "v4: " << v4 << endl;
+        
+        vect v5 = m1 * v4;
+        cout << "m1 * v4: " << v5 << endl;
+        
+    } catch (const char* msg) {
+        cerr << "Ошибка: " << msg << endl;
+    }
+    
+    return 0;
+}
